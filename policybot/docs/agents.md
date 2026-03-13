@@ -133,18 +133,46 @@ This agent handles queries that go beyond internal documents — for example, ch
 
 | Attribute | Value |
 |---|---|
-| **Role** | Resolves fee-related queries against structured tabular data |
+| **Role** | Resolves fee-related queries by analyzing complex tabular data in databases, spreadsheets, and policy documents |
 | **Model** | GPT-4o |
 | **Temperature** | 0.0 |
-| **Key tools** | `query_fee_table`, `lookup_service_code`, `calculate_fee` |
-| **Data source** | Azure SQL / Azure Table Storage (fee schedule data) |
+| **Key tools** | `query_fee_table`, `extract_table_from_document`, `analyze_spreadsheet`, `lookup_service_code`, `calculate_fee` |
+| **Data source** | Azure SQL / Azure Table Storage + Excel/CSV/PDF tabular artifacts in Blob/SharePoint |
 
-Fee schedules are **structured, frequently updated** datasets that do not lend themselves to vector search. The Fee Schedule Agent:
+Fee schedules are often spread across **heterogeneous tabular formats** (database rows, Excel sheets with merged headers, CSV extracts, and PDF tables). The Fee Schedule Agent uses LLM-powered table understanding to interpret these sources consistently:
 
 1. Parses the user's service code, procedure, or description.
-2. Executes a parameterised SQL query against the fee table.
-3. Returns the fee value, effective date, and applicable modifier rules.
-4. Uses GPT-4o solely for natural language explanation of the returned structured data (temperature = 0.0 for no embellishment).
+2. Chooses the best retrieval path:
+   - parameterized SQL query for canonical structured records
+   - spreadsheet parsing for multi-sheet rate workbooks
+   - document table extraction for PDF/Word fee schedules.
+3. Normalizes extracted table structures (header hierarchy, column semantics, units, effective dates, modifiers).
+4. Uses GPT-4o to reason over normalized rows and answer complex questions (comparisons, exceptions, cross-table rule interactions) with explicit row/column citations.
+5. Returns the fee value, effective date, modifier rules, and source trace back to exact table references.
+
+```python
+# Tool: analyze_spreadsheet
+def analyze_spreadsheet(file_uri: str, question: str) -> dict:
+    """
+    Parse workbook/sheet/table structures, normalize headers,
+    and return tabular context for LLM reasoning.
+    """
+    workbook = spreadsheet_parser.load(file_uri)
+    tables = []
+    for sheet in workbook.sheets:
+        extracted = table_extractor.from_sheet(sheet)
+        normalized = table_normalizer.normalize(
+            extracted,
+            preserve_header_hierarchy=True,
+            infer_column_types=True,
+        )
+        tables.extend(normalized)
+    return {
+        "tables": tables,
+        "source": file_uri,
+        "question": question,
+    }
+```
 
 ```python
 # Tool: query_fee_table
@@ -160,6 +188,9 @@ def query_fee_table(service_code: str, effective_date: str) -> dict:
     """
     return db.execute(query, (service_code, effective_date, effective_date)).fetchone()
 ```
+
+{: .note }
+> For spreadsheet/document-driven answers, the Fee Schedule Agent includes source-level table citations (file name, sheet/table name, row range, column names) so the Confidence Evaluator can validate faithfulness against exact tabular evidence.
 
 ---
 

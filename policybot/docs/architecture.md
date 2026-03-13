@@ -45,7 +45,8 @@ flowchart LR
         AISEARCH["Azure AI Search\nHybrid Retrieval"]
         AOAI["Azure OpenAI\nGPT-4o + Embeddings"]
         BING["Bing Search API"]
-        FEEDB["Fee Schedule Store\nSQL/Table"]
+        FEEDB["Fee Schedule Data Store\nSQL/Table"]
+        TABDOC["Tabular Document Repository\nExcel/CSV/PDF Tables"]
     end
 
     subgraph OPERATIONS["Operations & Platform Services"]
@@ -75,6 +76,7 @@ flowchart LR
     WSA --> BING
     WSA --> AOAI
     FSA --> FEEDB
+    FSA --> TABDOC
     FSA --> AOAI
     CE --> AOAI
 
@@ -86,6 +88,7 @@ flowchart LR
     TEAMSCARD --> BOT
 
     BLOB --> FIQ
+    BLOB --> TABDOC
     FIQ --> AISEARCH
     BOT --> COSMOS
     BOT --> MONITOR

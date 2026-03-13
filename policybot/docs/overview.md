@@ -60,7 +60,7 @@ The attached architecture sketch maps directly to the following system capabilit
 | **TEAMS (CHAT)** | Microsoft Teams channel integration via the Bot Framework Teams adapter. |
 | **WEB PORTAL** | React SPA with Direct Line REST API to Azure Bot Service. |
 | **1 AGENT OR MANY** | Configurable: single orchestrator for simple queries, full multi-agent for complex. |
-| **FEE SCHEDULES** | Fee Schedule Agent with structured lookup against a tabular data store. |
+| **FEE SCHEDULES** | Fee Schedule Agent that analyzes complex tabular data from spreadsheets and policy documents using LLM-powered table understanding. |
 | **AI SEARCH SERVICE / LLM** | Azure AI Search (retrieval) + Azure OpenAI GPT-4o (generation). |
 
 ---
