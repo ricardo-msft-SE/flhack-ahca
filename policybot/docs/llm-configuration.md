@@ -19,13 +19,24 @@ permalink: /docs/llm-configuration/
 
 ## Model Selection
 
-Policy Bot uses two Azure OpenAI models:
+Policy Bot uses **model specialisation** — each agent is matched to the model best suited to its cognitive task rather than using one model for everything. This balances accuracy, latency, and cost across the agent roster.
 
-| Model | Role | Reason |
+| Model | Agent(s) | Why |
 |---|---|---|
-| **GPT-4o** | Primary generation model for all agents | 128k context window; strong instruction-following; function/tool calling; vision support for future policy document image processing |
-| **GPT-4o-mini** | Confidence Evaluator binary checks; Escalation Manager routing | Cost-efficient for high-frequency, constrained tasks |
-| **text-embedding-3-large** | Document and query embedding | 3,072-dimension embeddings deliver best-in-class semantic similarity for Azure AI Search hybrid retrieval |
+| **`gpt-4.1`** | Orchestrator, Internal Policy, Fee Schedule | Strong general reasoning, instruction-following, tool/function calling, long context |
+| **`o3`** | Legal & Regulatory Interpretation | Multi-step chain-of-thought reasoning over dense, cross-referential regulatory text |
+| **`gpt-4o`** | Document Vision | Native vision I/O for scanned PDFs, image-embedded tables, diagram-heavy docs |
+| **`gpt-4.1-mini`** | Web Search, Confidence Evaluator, Escalation Manager | Cost-efficient for high-frequency summarisation and constrained structured-output tasks |
+| **`text-embedding-3-large`** | Embedding pipeline (all retrieval agents) | 3,072-dimension vectors for best-in-class hybrid search in Azure AI Search |
+
+{: .note }
+> `o3` is only invoked when the Orchestrator classifies the query as `reasoning_required: true` (complex regulatory interpretation). All other queries use `gpt-4.1` or `gpt-4.1-mini` to keep median latency low.
+
+### Model specialisation rationale
+
+- **`o3` for legal reasoning**: Regulatory and compliance queries involve nested conditionals, effective-date logic, and cross-document exception hierarchies. `o3`'s internal chain-of-thought handles this class of problem materially better than instruction-following models.
+- **`gpt-4o` for vision**: Scanned PDFs and image-embedded tables require native vision capability. Routing these inputs to `gpt-4o` eliminates a separate OCR pipeline while preserving full context.
+- **`gpt-4.1-mini` for evaluation/routing**: The Confidence Evaluator and Escalation Manager produce structured output against a well-defined schema — no open-ended generation. `gpt-4.1-mini` achieves the same accuracy at ~10–15× lower cost per call.
 
 ### Azure OpenAI Deployment Configuration
 
@@ -38,7 +49,29 @@ az cognitiveservices account create \
   --sku "S0" \
   --location "eastus2"
 
-# GPT-4o deployment
+# gpt-4.1 — Orchestrator, Internal Policy, Fee Schedule
+az cognitiveservices account deployment create \
+  --name "policybot-aoai" \
+  --resource-group "rg-policybot-prod" \
+  --deployment-name "gpt-4.1" \
+  --model-name "gpt-4.1" \
+  --model-version "2025-04-14" \
+  --model-format "OpenAI" \
+  --sku-capacity 80 \
+  --sku-name "GlobalStandard"
+
+# gpt-4.1-mini — Web Search, Confidence Evaluator, Escalation Manager
+az cognitiveservices account deployment create \
+  --name "policybot-aoai" \
+  --resource-group "rg-policybot-prod" \
+  --deployment-name "gpt-4.1-mini" \
+  --model-name "gpt-4.1-mini" \
+  --model-version "2025-04-14" \
+  --model-format "OpenAI" \
+  --sku-capacity 120 \
+  --sku-name "GlobalStandard"
+
+# gpt-4o — Document Vision Agent (native vision I/O)
 az cognitiveservices account deployment create \
   --name "policybot-aoai" \
   --resource-group "rg-policybot-prod" \
@@ -46,10 +79,21 @@ az cognitiveservices account deployment create \
   --model-name "gpt-4o" \
   --model-version "2024-11-20" \
   --model-format "OpenAI" \
-  --sku-capacity 80 \
+  --sku-capacity 40 \
   --sku-name "GlobalStandard"
 
-# Embedding model deployment
+# o3 — Legal & Regulatory Interpretation Agent
+az cognitiveservices account deployment create \
+  --name "policybot-aoai" \
+  --resource-group "rg-policybot-prod" \
+  --deployment-name "o3" \
+  --model-name "o3" \
+  --model-version "2025-04-16" \
+  --model-format "OpenAI" \
+  --sku-capacity 20 \
+  --sku-name "GlobalStandard"
+
+# Embedding model — all retrieval agents
 az cognitiveservices account deployment create \
   --name "policybot-aoai" \
   --resource-group "rg-policybot-prod" \
@@ -62,7 +106,7 @@ az cognitiveservices account deployment create \
 ```
 
 {: .note }
-> For production workloads with predictable query volume, consider **Provisioned Throughput Units (PTU)** for GPT-4o to eliminate throttling. PTU pricing is more cost-effective above ~40 TPM sustained load.
+> For production workloads with predictable query volume, consider **Provisioned Throughput Units (PTU)** for `gpt-4.1` to eliminate throttling. PTU pricing is more cost-effective above ~40 TPM sustained load. `o3` is best kept on Global Standard given lower, bursty invocation volume.
 
 ---
 
@@ -70,13 +114,15 @@ az cognitiveservices account deployment create \
 
 Parameters are configured **per agent** and stored in Azure AI Foundry's agent configuration:
 
-| Parameter | Orchestrator | Internal Policy | Web Search | Fee Schedule | Confidence Evaluator |
-|---|---|---|---|---|---|
-| `temperature` | 0.0 | 0.1 | 0.1 | 0.0 | 0.0 |
-| `top_p` | 1.0 | 0.95 | 0.95 | 1.0 | 1.0 |
-| `max_tokens` | 1,024 | 2,048 | 2,048 | 512 | 512 |
-| `frequency_penalty` | 0.0 | 0.3 | 0.3 | 0.0 | 0.0 |
-| `presence_penalty` | 0.0 | 0.2 | 0.2 | 0.0 | 0.0 |
+| Parameter | Orchestrator | Legal & Regulatory (`o3`) | Internal Policy | Doc Vision (`gpt-4o`) | Web Search | Fee Schedule | Confidence Eval |
+|---|---|---|---|---|---|---|---|
+| `temperature` | 0.0 | 1.0* | 0.1 | 0.0 | 0.1 | 0.0 | 0.0 |
+| `top_p` | 1.0 | 1.0 | 0.95 | 1.0 | 0.95 | 1.0 | 1.0 |
+| `max_tokens` | 1,024 | 8,192 | 2,048 | 2,048 | 2,048 | 512 | 512 |
+| `frequency_penalty` | 0.0 | 0.0 | 0.3 | 0.0 | 0.3 | 0.0 | 0.0 |
+| `presence_penalty` | 0.0 | 0.0 | 0.2 | 0.0 | 0.2 | 0.0 | 0.0 |
+
+_\* `o3` reasoning models require `temperature: 1` and control reasoning depth via `reasoning_effort` (`low`/`medium`/`high`) rather than temperature. Set `reasoning_effort: high` for complex regulatory queries._
 
 **Parameter rationale:**
 

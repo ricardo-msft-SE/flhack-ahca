@@ -28,6 +28,66 @@ A single monolithic agent tasked with answering all policy questions would requi
 
 ---
 
+## Model Specialisation Strategy
+
+Policy Bot deliberately assigns **a different model to each agent role** based on the cognitive demands of that role. Running every agent on the most capable (and most expensive) model is wasteful; running every agent on the cheapest model sacrifices accuracy where it matters most.
+
+### Model–Agent Assignment
+
+| Agent | Model | Why this model |
+|---|---|---|
+| **Orchestrator** | `gpt-4.1` | Needs strong multi-step reasoning to decompose queries, route sub-tasks, and synthesise heterogeneous agent outputs. |
+| **Legal & Regulatory Interpretation** | `o3` | Complex regulatory text requires multi-step deductive reasoning over long contexts. `o3`'s chain-of-thought excels here. |
+| **Internal Policy Retrieval** | `gpt-4.1` | RAG synthesis over retrieved chunks; needs instruction-following and faithful citation. |
+| **Web Search** | `gpt-4.1-mini` | Summarises web pages — high-frequency, lower-stakes; latency and cost matter more than deep reasoning. |
+| **Fee Schedule** | `gpt-4.1` | Tabular reasoning over structured and semi-structured data; needs reliable function calling and numerical accuracy. |
+| **Document Vision** | `gpt-4o` | Scanned PDFs, image-based fee schedules, and diagram-heavy regulatory docs require a native vision model. |
+| **Confidence Evaluator** | `gpt-4.1-mini` | Binary faithfulness / completeness scoring — well-defined structured output task; speed and cost matter. |
+| **Escalation Manager** | `gpt-4.1-mini` | Routing decision with structured output; no generation required. |
+
+### Capability-to-Model Mapping
+
+```mermaid
+flowchart LR
+    U[User Query] --> ORC[Orchestrator\ngpt-4.1]
+
+    ORC --> LEG[Legal & Regulatory\no3]
+    ORC --> INT[Internal Policy Retrieval\ngpt-4.1]
+    ORC --> WEB[Web Search\ngpt-4.1-mini]
+    ORC --> FEE[Fee Schedule\ngpt-4.1]
+    ORC --> VIS[Document Vision\ngpt-4o]
+
+    LEG --> EVL
+    INT --> EVL
+    WEB --> EVL
+    FEE --> EVL
+    VIS --> EVL
+
+    EVL[Confidence Evaluator\ngpt-4.1-mini] --> ESC[Escalation Manager\ngpt-4.1-mini]
+    ESC -->|high confidence| ANS[Answer to User]
+    ESC -->|low confidence| HUM[Human Reviewer]
+```
+
+### Why `o3` for Legal & Regulatory Interpretation?
+
+Regulatory text — healthcare compliance rules, AHCA policy bulletins, Medicaid guidance — is dense, cross-referential, and exceptions-heavy. Answering correctly requires:
+
+- Following nested conditionals across long sections.
+- Identifying when a general rule has a specific exception.
+- Determining effective dates and supersession across document versions.
+
+`o3`'s internal chain-of-thought reasoning handles this class of problem significantly better than standard instruction-following models. The trade-off is higher latency and cost, which is acceptable because legal interpretation queries are less frequent and higher-stakes.
+
+### Why `gpt-4o` for Document Vision?
+
+Many source documents arrive as **scanned PDFs, photographed whiteboards, or image-embedded tables**. A text-only model cannot process these. The Document Vision Agent accepts image inputs natively, extracts structured content, and passes normalized text to downstream agents. This eliminates the need for a separate OCR pipeline for most common cases.
+
+### Why `gpt-4.1-mini` for Evaluation and Routing?
+
+The Confidence Evaluator and Escalation Manager perform **constrained, structured-output tasks** — they are not open-ended generators. Using a lightweight model here reduces cost per query by ~10–15× compared to `gpt-4.1` with no measurable quality loss on these specific subtasks.
+
+---
+
 ## Agent Roster
 
 ### 1. Orchestrator Agent
@@ -35,7 +95,7 @@ A single monolithic agent tasked with answering all policy questions would requi
 | Attribute | Value |
 |---|---|
 | **Role** | Top-level router, query decomposer, and response assembler |
-| **Model** | GPT-4o (128k context) |
+| **Model** | `gpt-4.1` |
 | **Temperature** | 0.0 — deterministic routing decisions |
 | **Key tools** | `route_to_agent`, `merge_responses`, `call_confidence_evaluator` |
 
@@ -75,12 +135,29 @@ async def orchestrate(user_query: str, thread: AgentThread) -> dict:
 
 ---
 
+### 1a. Legal & Regulatory Interpretation Agent
+
+| Attribute | Value |
+|---|---|
+| **Role** | Deep reasoning over complex regulatory text, cross-referential rules, and compliance obligations |
+| **Model** | `o3` |
+| **Temperature** | 1.0 (o3 controls its own reasoning depth) |
+| **Key tools** | `search_knowledge_index`, `fetch_document_chunk`, `compare_document_versions` |
+| **Data source** | Foundry IQ — regulatory corpus (AHCA bulletins, Medicaid manuals, federal/state rules) |
+
+This agent is invoked when the Orchestrator classifies a query as requiring **legal or regulatory interpretation** — not just lookup. It uses `o3`'s internal chain-of-thought to reason through nested conditions, effective-date logic, and exception hierarchies before producing a cited answer.
+
+{: .important }
+> `o3` reasoning calls are higher-latency (~5–20 s). The Orchestrator marks these queries as `reasoning_required: true` and shows the user a "Working on a complex policy question..." indicator while `o3` runs.
+
+---
+
 ### 2. Internal Policy Agent
 
 | Attribute | Value |
 |---|---|
 | **Role** | Retrieves answers from internal organisational policy documents |
-| **Model** | GPT-4o |
+| **Model** | `gpt-4.1` |
 | **Temperature** | 0.1 |
 | **Key tools** | `search_knowledge_index`, `fetch_document_chunk` |
 | **Data source** | Foundry IQ knowledge index → Azure AI Search |
@@ -105,12 +182,32 @@ If the provided documents do not contain an answer, respond with:
 
 ---
 
+### 2a. Document Vision Agent
+
+| Attribute | Value |
+|---|---|
+| **Role** | Extracts structured content from scanned PDFs, image-based tables, and diagram-heavy policy documents |
+| **Model** | `gpt-4o` (vision-capable) |
+| **Temperature** | 0.0 |
+| **Key tools** | `analyze_document_image`, `extract_table_from_image`, `ocr_pdf_page` |
+| **Data source** | Azure Blob Storage — raw scanned document uploads |
+
+Many policy source documents arrive as **scanned PDFs or image-embedded formats** that text-only models cannot process. This agent:
+
+1. Accepts image or PDF page inputs directly.
+2. Uses GPT-4o's native vision capability to read tables, forms, and annotated diagrams.
+3. Outputs normalized structured text that downstream agents (Internal Policy, Fee Schedule) can consume.
+
+This eliminates the need for a dedicated OCR microservice for most common document types.
+
+---
+
 ### 3. Web Search Agent
 
 | Attribute | Value |
 |---|---|
 | **Role** | Retrieves public regulatory, legislative, and industry policy information |
-| **Model** | GPT-4o |
+| **Model** | `gpt-4.1-mini` |
 | **Temperature** | 0.1 |
 | **Key tools** | `bing_web_search`, `scrape_url`, `summarise_page` |
 | **Data source** | Bing Search API v7 |
@@ -134,7 +231,7 @@ This agent handles queries that go beyond internal documents — for example, ch
 | Attribute | Value |
 |---|---|
 | **Role** | Resolves fee-related queries by analyzing complex tabular data in databases, spreadsheets, and policy documents |
-| **Model** | GPT-4o |
+| **Model** | `gpt-4.1` |
 | **Temperature** | 0.0 |
 | **Key tools** | `query_fee_table`, `extract_table_from_document`, `analyze_spreadsheet`, `lookup_service_code`, `calculate_fee` |
 | **Data source** | Azure SQL / Azure Table Storage + Excel/CSV/PDF tabular artifacts in Blob/SharePoint |
