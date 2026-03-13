@@ -24,6 +24,8 @@ Teams spend time translating meeting transcripts into plans, statuses, and artif
 
 ## Core user journeys
 
+![Project Management Buddy core flow]({{ '/assets/images/arch7.png' | relative_url }})
+
 1. Upload or connect a meeting transcript.
 2. System extracts project signals (name, people, milestones, blockers, decisions).
 3. System checks for related existing project context.
