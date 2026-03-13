@@ -42,10 +42,16 @@ jobs:
         env:
           JEKYLL_ENV: production
 
+      - name: Prepare /policybot artifact root
+        run: |
+          rm -rf _site_wrapped
+          mkdir -p _site_wrapped/policybot
+          cp -R _site/. _site_wrapped/policybot/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: policybot/_site
+          path: policybot/_site_wrapped
 
   deploy:
     environment:
