@@ -42,6 +42,10 @@ When a question is too complex or the confidence score falls below a configurabl
 
 The attached architecture sketch maps directly to the following system capabilities:
 
+![Policy Bot flow diagram]({{ '/assets/images/policybot-flow-diagram.png' | relative_url }})
+
+_Figure: Original Policy Bot concept flow used as the basis for the architecture described in this guide._
+
 | Diagram Element | System Implementation |
 |---|---|
 | **Python** | Agent Framework agents are authored in Python using the Foundry Agent SDK. |

@@ -56,4 +56,4 @@ bundle exec jekyll serve --livereload
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+No license file is currently included in this repository.
