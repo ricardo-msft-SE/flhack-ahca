@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Glossary
-nav_order: 10
+nav_order: 11
 description: "Definitions of all terms and acronyms used in the Policy Bot design guide."
 permalink: /docs/glossary/
 ---
