@@ -64,24 +64,19 @@ function filterGlossary(value) {
 
 ## Quick Reference Index
 
-Jump to terms starting with:
+Jump directly to a term by clicking its initial letter. Letters that appear as links have at least one matching term.
 
-{% assign letters = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z" | split: "," %}
 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0;">
-{% for letter in letters %}
-  {% assign has_term = false %}
-  {% for entry in site.data.glossary %}
-    {% if entry.term | slice: 0 | upcase == letter %}
-      {% assign has_term = true %}
-    {% endif %}
-  {% endfor %}
-  {% if has_term %}
-  <a href="#{{ sorted_terms | where_exp: "e", "e.term | slice: 0 | upcase == letter" | first | map: "term" | first | slugify }}"
-     style="padding:0.25rem 0.6rem;background:#f6f8fa;border:1px solid #d0d7de;border-radius:4px;font-family:monospace;font-size:0.95rem;">
-    {{ letter }}
-  </a>
-  {% else %}
-  <span style="padding:0.25rem 0.6rem;color:#d0d7de;font-family:monospace;font-size:0.95rem;">{{ letter }}</span>
+{% assign sorted_terms = site.data.glossary | sort: "term" %}
+{% assign prev_letter = "" %}
+{% for entry in sorted_terms %}
+  {% assign first_letter = entry.term | slice: 0 | upcase %}
+  {% if first_letter != prev_letter %}
+    {% assign prev_letter = first_letter %}
+    <a href="#{{ entry.term | slugify }}"
+       style="padding:0.25rem 0.6rem;background:#f6f8fa;border:1px solid #d0d7de;border-radius:4px;font-family:monospace;font-size:0.95rem;text-decoration:none;">
+      {{ first_letter }}
+    </a>
   {% endif %}
 {% endfor %}
 </div>
