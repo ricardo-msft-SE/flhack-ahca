@@ -36,9 +36,9 @@ Policy Bot is a conversational AI assistant deployed to **Microsoft Teams** and 
 
 When a question is too complex or the confidence score falls below a configurable threshold, the system **automatically escalates to a human reviewer** via a structured Teams adaptive card workflow, ensuring no question goes unanswered.
 
-![Policy Bot flow diagram]({{ '/assets/images/arch9.png' | relative_url }})
+![Policy Bot flow diagram]({{ '/assets/images/arch10.png' | relative_url }})
 
-_Figure: Policy Bot solution flow (arch9)._ 
+_Figure: Policy Bot solution flow (arch10)._ 
 
 ---
 
