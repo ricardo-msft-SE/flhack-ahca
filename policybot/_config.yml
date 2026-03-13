@@ -3,7 +3,7 @@ description: "High-level design guide for the AHCA Policy Bot using Microsoft Az
 baseurl: "/flhack-ahca/policybot"
 url: "https://ricardo-msft-se.github.io"
 
-remote_theme: just-the-docs/just-the-docs@v0.10.0
+theme: just-the-docs
 
 # Just the Docs configuration
 color_scheme: default
@@ -68,7 +68,6 @@ aux_links_new_tab: true
 plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
-  - jekyll-remote-theme
 
 # Markdown
 markdown: kramdown
