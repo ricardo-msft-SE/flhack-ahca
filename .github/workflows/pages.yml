@@ -1,10 +1,13 @@
-name: Deploy Policy Bot Docs (Jekyll)
+name: Deploy Docs (Jekyll)
 
 on:
   push:
     branches: [main]
     paths:
       - "policybot/**"
+      - "pmbuddy/**"
+      - "index.html"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -19,39 +22,53 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: policybot
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Ruby
+      - name: Setup Ruby for Policy Bot
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
           bundler-cache: true
           working-directory: policybot
 
+      - name: Setup Ruby for PM Buddy
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: pmbuddy
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Build with Jekyll
+      - name: Build Policy Bot with Jekyll
+        working-directory: policybot
         run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}/policybot"
         env:
           JEKYLL_ENV: production
 
-      - name: Prepare /policybot artifact root
+      - name: Build PM Buddy with Jekyll
+        working-directory: pmbuddy
+        run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}/pmbuddy"
+        env:
+          JEKYLL_ENV: production
+
+      - name: Prepare multi-docs artifact root
         run: |
           rm -rf _site_wrapped
           mkdir -p _site_wrapped/policybot
-          cp -R _site/. _site_wrapped/policybot/
+          mkdir -p _site_wrapped/pmbuddy
+          cp -R policybot/_site/. _site_wrapped/policybot/
+          cp -R pmbuddy/_site/. _site_wrapped/pmbuddy/
+          cp index.html _site_wrapped/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: policybot/_site_wrapped
+          path: _site_wrapped
 
   deploy:
     environment:

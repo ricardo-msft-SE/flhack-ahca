@@ -1,0 +1,22 @@
+- term: Agent Framework
+  definition: Microsoft framework for building orchestrated multi-agent applications with tool calling and policy controls.
+- term: Foundry IQ
+  definition: Azure AI Foundry capability for knowledge indexing and grounded retrieval across enterprise content.
+- term: Orchestrator Agent
+  definition: Top-level coordinator agent that delegates tasks to specialist agents and enforces workflow policy.
+- term: Project Match
+  definition: Step that determines whether new transcript evidence maps to an existing project context.
+- term: Transcript Intake
+  definition: Processing phase that extracts structured facts from meeting transcripts.
+- term: Grounding
+  definition: Constraining model responses to retrieved source evidence and citations.
+- term: Azure AI Search
+  definition: Azure search service that can support lexical/vector/hybrid retrieval and filtering.
+- term: Azure SQL Database
+  definition: Managed relational database service used as the transactional system of record for projects.
+- term: Tool Agent
+  definition: Agent wrapper around approved backend operations such as SQL stored procedure execution.
+- term: Confidence Score
+  definition: Numeric signal representing estimated reliability and completeness of generated output.
+- term: HITL
+  definition: Human-in-the-loop approval step used when confidence or policy checks fail thresholds.
