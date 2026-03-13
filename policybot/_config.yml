@@ -6,7 +6,7 @@ url: "https://ricardo-msft-se.github.io"
 theme: just-the-docs
 
 # Just the Docs configuration
-color_scheme: default
+color_scheme: light
 search_enabled: true
 search:
   heading_level: 2
