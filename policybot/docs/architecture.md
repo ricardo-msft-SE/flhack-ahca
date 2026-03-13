@@ -20,59 +20,56 @@ permalink: /docs/architecture/
 ## High-Level Component Diagram
 
 ```mermaid
-graph TB
-    subgraph Channels["🖥️ User Channels"]
-        TEAMS["Microsoft Teams\nAdaptive Card Bot"]
-        WEB["React Web Portal\n(Direct Line API)"]
+%%{init: {'flowchart': {'curve': 'stepBefore'}}}%%
+flowchart LR
+    subgraph CHANNELS["User Channels"]
+        TEAMS["Microsoft Teams\nChat Experience"]
+        WEB["Web Portal\nBrowser Experience"]
     end
 
-    subgraph BotLayer["⚡ Azure Bot Service"]
-        BOT["Bot Framework\nOrchestrator Host"]
+    subgraph ENGAGEMENT["Conversation Layer"]
+        BOT["Azure Bot Service\nBot Framework Host"]
     end
 
-    subgraph FoundryPlane["🤖 Azure AI Foundry — Agent Plane"]
-        OA["Orchestrator Agent\n(Python)"]
-        IPA["Internal Policy Agent\n(Python)"]
-        WSA["Web Search Agent\n(Python)"]
-        FSA["Fee Schedule Agent\n(Python)"]
-        CE["Confidence Evaluator\n(Python)"]
-        EM["Escalation Manager\n(Python)"]
+    subgraph AGENTS["Azure AI Foundry Agent Plane"]
+        OA["Orchestrator Agent"]
+        IPA["Internal Policy Agent"]
+        WSA["Web Search Agent"]
+        FSA["Fee Schedule Agent"]
+        CE["Confidence Evaluator"]
+        EM["Escalation Manager"]
     end
 
-    subgraph DataLayer["🗄️ Data & Retrieval Layer"]
-        FIQ["Foundry IQ\nKnowledge Index"]
-        AISEARCH["Azure AI Search\n(Hybrid Vector + BM25)"]
-        AOAI["Azure OpenAI\nGPT-4o + text-embedding-3-large"]
-        BING["Bing Search API\n(Web Sources)"]
-        FEEDB["Fee Schedule\nAzure Table / SQL"]
+    subgraph KNOWLEDGE["Knowledge & Intelligence Services"]
+        FIQ["Foundry IQ\nKnowledge Management"]
+        AISEARCH["Azure AI Search\nHybrid Retrieval"]
+        AOAI["Azure OpenAI\nGPT-4o + Embeddings"]
+        BING["Bing Search API"]
+        FEEDB["Fee Schedule Store\nSQL/Table"]
     end
 
-    subgraph HumanLoop["👤 Human-in-the-Loop"]
-        REVIEWER["Policy SME\nReviewer"]
+    subgraph OPERATIONS["Operations & Platform Services"]
+        BLOB["Azure Blob Storage\nPolicy Documents"]
+        COSMOS["Azure Cosmos DB\nConversation History"]
+        MONITOR["Azure Monitor\nApplication Insights"]
+        KV["Azure Key Vault\nSecrets"]
+    end
+
+    subgraph HITL["Human-in-the-Loop"]
         TEAMSCARD["Teams Adaptive Card\nEscalation Workflow"]
-        EMAIL["Email Notification\n(Logic App)"]
-    end
-
-    subgraph Storage["📦 Supporting Services"]
-        BLOB["Azure Blob Storage\n(Internal Policy Docs)"]
-        COSMOS["Azure Cosmos DB\n(Conversation History)"]
-        MONITOR["Azure Monitor\n+ App Insights"]
-        KV["Azure Key Vault\n(Secrets)"]
+        EMAIL["Email Notification\nLogic App"]
+        REVIEWER["Policy SME Reviewer"]
     end
 
     TEAMS --> BOT
     WEB --> BOT
     BOT --> OA
+
     OA --> IPA
     OA --> WSA
     OA --> FSA
     OA --> CE
-    CE -- "score < threshold" --> EM
-    EM --> TEAMSCARD
-    EM --> EMAIL
-    TEAMSCARD --> REVIEWER
-    REVIEWER -- "response" --> TEAMSCARD
-    TEAMSCARD -- "resolved answer" --> BOT
+
     IPA --> AISEARCH
     IPA --> AOAI
     WSA --> BING
@@ -80,8 +77,16 @@ graph TB
     FSA --> FEEDB
     FSA --> AOAI
     CE --> AOAI
-    FIQ --> AISEARCH
+
+    CE -- "confidence below threshold" --> EM
+    EM --> TEAMSCARD
+    EM --> EMAIL
+    TEAMSCARD --> REVIEWER
+    REVIEWER --> TEAMSCARD
+    TEAMSCARD --> BOT
+
     BLOB --> FIQ
+    FIQ --> AISEARCH
     BOT --> COSMOS
     BOT --> MONITOR
     OA --> KV
