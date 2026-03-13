@@ -1,0 +1,114 @@
+// Custom styles for PM Buddy documentation
+// Imported automatically by Just the Docs theme
+
+// ─── Color tokens ────────────────────────────────────────────────────────────
+$azure-blue:    #0078d4;
+$azure-teal:    #00bcf2;
+$pm-accent:     #2563eb;
+
+// ─── Hero banner on PM Buddy home page ───────────────────────────────────────
+.pm-hero {
+  background: linear-gradient(135deg, $azure-blue 0%, $azure-teal 100%);
+  color: #fff;
+  border-radius: 8px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+
+  h1 {
+    color: #fff;
+    border-bottom: none;
+    margin-top: 0;
+  }
+
+  p {
+    opacity: 0.92;
+    font-size: 1.1rem;
+    margin-bottom: 0;
+  }
+}
+
+// ─── Mermaid diagram container ────────────────────────────────────────────────
+.mermaid {
+  background: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+// ─── Glossary term headings ───────────────────────────────────────────────────
+#glossary ~ h2 + h3,
+.content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $azure-blue;
+  border-left: 3px solid $azure-teal;
+  padding-left: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+// ─── Table enhancements ───────────────────────────────────────────────────────
+table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    background-color: #f0f4ff;
+    color: #1e3a5f;
+    font-weight: 600;
+  }
+
+  tr:hover td {
+    background-color: #f8faff;
+  }
+}
+
+// ─── Code block labels ────────────────────────────────────────────────────────
+div.highlighter-rouge {
+  position: relative;
+
+  &::before {
+    position: absolute;
+    top: 0.3rem;
+    right: 0.6rem;
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &.language-yaml::before  { content: "YAML"; }
+  &.language-python::before { content: "Python"; }
+  &.language-json::before  { content: "JSON"; }
+  &.language-sql::before   { content: "SQL"; }
+}
+
+// ─── Back-to-top button ───────────────────────────────────────────────────────
+.back-to-top {
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $azure-blue;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+
+  &:hover {
+    background: darken($azure-blue, 10%);
+    color: #fff;
+  }
+}
+
+// ─── Nav sidebar category labels ─────────────────────────────────────────────
+.nav-category {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  padding: 0.5rem 1rem 0.2rem;
+}

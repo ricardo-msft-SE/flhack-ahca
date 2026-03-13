@@ -1,0 +1,247 @@
+# Glossary data source for pmbuddy/glossary.md
+# Each entry: term, definition, category (optional)
+
+- term: Agent
+  category: AI Concepts
+  definition: >
+    An AI system that can perceive its environment, make decisions, and take actions using
+    tools (such as API calls or database queries) to achieve a goal. In PM Buddy, agents are
+    built on Azure AI Foundry Agent Service and Semantic Kernel.
+
+- term: Agent Framework
+  category: AI Concepts
+  definition: >
+    The infrastructure that manages agent lifecycle, tool execution, and inter-agent communication.
+    PM Buddy uses Azure AI Foundry Agent Service as its agent framework, with Semantic Kernel
+    providing the planner and plugin layer.
+
+- term: Azure AI Document Intelligence
+  category: Azure Services
+  definition: >
+    An Azure service that extracts structured text and data from documents (PDF, DOCX, images).
+    PM Buddy uses it to parse uploaded meeting transcripts before processing.
+
+- term: Azure AI Foundry
+  category: Azure Services
+  definition: >
+    Microsoft's unified platform for building, deploying, and managing AI applications and agents.
+    It integrates Azure OpenAI, Azure AI Search, prompt management, evaluations, and the Agent
+    Service into a single developer experience. Formerly known as Azure AI Studio.
+
+- term: Azure AI Foundry Agent Service
+  category: Azure Services
+  definition: >
+    A managed runtime within Azure AI Foundry for hosting and executing AI agents. It handles
+    thread management, tool execution, and tracing for multi-step agent runs.
+
+- term: Azure AI Search
+  category: Azure Services
+  definition: >
+    Microsoft's cloud search service that provides full-text search, vector search, and semantic
+    ranking. PM Buddy uses it as the backbone of Foundry IQ for knowledge retrieval.
+
+- term: Azure Blob Storage
+  category: Azure Services
+  definition: >
+    Microsoft's object storage service for unstructured data. PM Buddy stores raw transcripts,
+    generated reports, and source documents for Foundry IQ indexing in Azure Blob Storage.
+
+- term: Azure OpenAI Service
+  category: Azure Services
+  definition: >
+    Microsoft's managed deployment of OpenAI models (including GPT-4o) on Azure infrastructure,
+    with enterprise security, SLAs, and private networking.
+
+- term: Azure SQL Database
+  category: Azure Services
+  definition: >
+    A fully managed relational database service on Azure. PM Buddy's Project DB uses Azure SQL
+    to store structured project records, milestones, tasks, stakeholders, and action items.
+
+- term: Bing Search API
+  category: Azure Services
+  definition: >
+    Microsoft's web search API used to ground PM Buddy's Project Management Agent with
+    current web content such as industry benchmarks, technology comparisons, and best practices.
+
+- term: BM25
+  category: AI Concepts
+  definition: >
+    A classical text ranking algorithm (Best Match 25) based on term frequency and inverse
+    document frequency. Azure AI Search uses BM25 for keyword-based retrieval, combined with
+    vector search in PM Buddy's hybrid search configuration.
+
+- term: Chunk
+  category: AI Concepts
+  definition: >
+    A fixed-size segment of text created by splitting a larger document before generating
+    embeddings. PM Buddy uses 512-token chunks with 10% overlap to balance retrieval precision
+    with cross-boundary context preservation.
+
+- term: Content Safety
+  category: Security
+  definition: >
+    Azure AI Content Safety filters applied to LLM inputs and outputs. PM Buddy uses these to
+    block harmful content categories (hate, self-harm, violence) and detect prompt injection
+    attempts before they reach the model.
+
+- term: Embedding
+  category: AI Concepts
+  definition: >
+    A numerical vector representation of text that captures its semantic meaning. PM Buddy uses
+    Azure OpenAI's text-embedding-3-large model (3072 dimensions) to generate embeddings for
+    Foundry IQ vector search.
+
+- term: Foundry IQ
+  category: PM Buddy Concepts
+  definition: >
+    PM Buddy's knowledge retrieval layer — a Retrieval-Augmented Generation (RAG) pipeline built
+    on Azure AI Search and integrated into Azure AI Foundry. Foundry IQ enables agents to find
+    semantically related projects and retrieve historical meeting content without storing
+    everything in the LLM context window.
+
+- term: Function Calling
+  category: AI Concepts
+  definition: >
+    A capability of GPT-4o that allows the model to output structured calls to predefined tools
+    (functions) such as database queries, search lookups, or API calls. PM Buddy agents use
+    function calling to invoke SQL queries, Bing Search, and Foundry IQ lookups.
+
+- term: GPT-4o
+  category: AI Concepts
+  definition: >
+    OpenAI's flagship multimodal large language model, deployed via Azure OpenAI Service.
+    PM Buddy uses the gpt-4o-2024-11-20 version for all agent inference. It supports a 128K
+    token context window and parallel function calling.
+
+- term: Grounding
+  category: AI Concepts
+  definition: >
+    The practice of augmenting an LLM's context with retrieved factual content — either from a
+    knowledge base (Foundry IQ) or web search (Bing) — to reduce hallucination and improve
+    answer accuracy.
+
+- term: HNSW
+  category: AI Concepts
+  definition: >
+    Hierarchical Navigable Small World — an approximate nearest-neighbor algorithm used for
+    efficient vector similarity search. Azure AI Search uses HNSW for PM Buddy's vector index.
+
+- term: Hybrid Search
+  category: AI Concepts
+  definition: >
+    A search strategy that combines keyword (BM25) and vector (HNSW) retrieval, then fuses
+    the result sets using Reciprocal Rank Fusion (RRF). PM Buddy uses hybrid search in
+    Foundry IQ to maximize both precision and recall.
+
+- term: JSON Mode
+  category: AI Concepts
+  definition: >
+    An Azure OpenAI inference setting that guarantees the model output is valid JSON. PM Buddy's
+    Transcript Processing Agent and SQL Agent use JSON mode to ensure machine-parseable outputs.
+
+- term: LLM
+  category: AI Concepts
+  definition: >
+    Large Language Model — a neural network trained on large text corpora that can generate,
+    classify, and reason over text. GPT-4o is the LLM powering all PM Buddy agents.
+
+- term: Managed Identity
+  category: Security
+  definition: >
+    An Azure feature that provides Azure services with an automatically managed identity in
+    Microsoft Entra ID, eliminating the need for stored credentials. PM Buddy uses managed
+    identities for all service-to-service authentication.
+
+- term: Microsoft Entra ID
+  category: Security
+  definition: >
+    Microsoft's cloud identity and access management service (formerly Azure Active Directory).
+    PM Buddy uses Entra ID for user authentication (OAuth 2.0/OIDC) and managed identities for
+    service accounts.
+
+- term: Orchestrator Agent
+  category: PM Buddy Concepts
+  definition: >
+    The entry-point agent in PM Buddy that parses user intent, delegates work to specialist
+    agents, enforces token budgets, and assembles the final response. It does not generate
+    project data itself — it only routes and coordinates.
+
+- term: Project DB
+  category: PM Buddy Concepts
+  definition: >
+    The Azure SQL Database that stores structured project records, milestones, tasks,
+    stakeholders, transcripts, and action items. It is the authoritative source of truth for
+    structured project state.
+
+- term: Prompt Injection
+  category: Security
+  definition: >
+    An attack where malicious instructions are embedded in user-provided content (such as a
+    transcript) to hijack an LLM's behavior. PM Buddy mitigates this by passing transcript
+    content as a data parameter (not in the system prompt) and using Azure OpenAI's jailbreak
+    detection filter.
+
+- term: RACI Chart
+  category: PM Concepts
+  definition: >
+    A responsibility assignment matrix defining who is Responsible, Accountable, Consulted,
+    and Informed for each project task. PM Buddy's Report Generation Agent can produce RACI
+    charts from meeting transcript stakeholder data.
+
+- term: RAG
+  category: AI Concepts
+  definition: >
+    Retrieval-Augmented Generation — an AI architecture pattern where relevant documents are
+    retrieved from a knowledge base and included in the LLM prompt to ground its response.
+    Foundry IQ is PM Buddy's RAG implementation.
+
+- term: Semantic Kernel
+  category: AI Concepts
+  definition: >
+    Microsoft's open-source SDK (available in Python, .NET, and Java) for building AI agents
+    and orchestration logic. PM Buddy uses Semantic Kernel for the planner, memory plugins,
+    and function-calling wrappers inside each Azure AI Foundry agent.
+
+- term: Semantic Ranker
+  category: AI Concepts
+  definition: >
+    A machine-learning model in Azure AI Search that re-ranks search results based on semantic
+    relevance (not just keyword overlap). PM Buddy uses the semantic ranker as the final step
+    in its hybrid Foundry IQ search pipeline.
+
+- term: SQL Agent
+  category: PM Buddy Concepts
+  definition: >
+    A specialized PM Buddy agent that is the only component authorized to execute data-modification
+    queries (INSERT, UPDATE) against Azure SQL. It acts as a security gateway, enforcing
+    parameterized queries and least-privilege access.
+
+- term: System Prompt
+  category: AI Concepts
+  definition: >
+    A set of instructions provided to an LLM at the start of a conversation that defines the
+    model's persona, constraints, output format, and behavior rules. Each PM Buddy agent has
+    a dedicated, versioned system prompt stored in Azure AI Foundry.
+
+- term: Temperature
+  category: AI Concepts
+  definition: >
+    An LLM inference parameter (0.0–2.0) that controls output randomness. Lower values (0.0–0.2)
+    produce deterministic, predictable outputs; higher values (0.5–1.0) produce more varied,
+    creative outputs. PM Buddy uses 0.0 for extraction and SQL tasks, 0.4–0.5 for plan and
+    report generation.
+
+- term: Token
+  category: AI Concepts
+  definition: >
+    The basic unit of text processed by an LLM — roughly 0.75 words in English. Token counts
+    determine API cost and context window usage. PM Buddy enforces per-run token budgets to
+    control costs and prevent runaway agent loops.
+
+- term: Vector Search
+  category: AI Concepts
+  definition: >
+    A search technique that finds documents whose embedding vectors are most similar (by cosine
+    distance or dot product) to a query embedding, regardless of keyword overlap. PM Buddy uses
+    vector search in Foundry IQ for semantic project matching.
