@@ -1,0 +1,68 @@
+- term: "Agent"
+  definition: "An AI process that uses an LLM to decide a sequence of actions and tool calls to fulfil a user request. Agents are the fundamental unit of orchestration in the Microsoft Agent Framework."
+
+- term: "Agent Framework"
+  definition: "Microsoft's open SDK (part of Azure AI Foundry) for building multi-agent AI systems. It provides base-agent classes, tool-calling primitives, inter-agent communication, and state management."
+
+- term: "Azure AI Foundry"
+  definition: "Microsoft's unified platform for building, testing, and deploying AI solutions at enterprise scale. Combines model management, agent orchestration, evaluation, and monitoring in a single control plane."
+
+- term: "Azure AI Search"
+  definition: "A cloud-based search service that provides full-text, vector, and hybrid retrieval over indexed documents. Used in Policy Bot to ground the LLM's responses in authoritative policy content."
+
+- term: "Azure Bot Service"
+  definition: "A managed service that hosts and connects chatbots to multiple channels (Teams, Web Chat, etc.) via the Bot Framework SDK."
+
+- term: "Azure OpenAI Service"
+  definition: "Microsoft's managed deployment of OpenAI models (GPT-4o, text-embedding-3, etc.) within the Azure compliance boundary."
+
+- term: "Bing Search API"
+  definition: "A REST API that provides programmatic access to Bing's web search index. Used by the Web Search Agent to retrieve up-to-date regulatory and public policy information."
+
+- term: "Confidence Score"
+  definition: "A numeric value (0–1) produced by the Confidence Evaluator Agent that estimates the reliability of the bot's answer. Scores below a configurable threshold trigger human escalation."
+
+- term: "Embedding"
+  definition: "A numerical vector representation of text produced by an embedding model. Embeddings capture semantic meaning, enabling similarity-based document retrieval in Azure AI Search."
+
+- term: "Foundry IQ"
+  definition: "Microsoft's knowledge management capability within Azure AI Foundry. It automates document ingestion, chunking, embedding, indexing, and freshness management for grounded AI responses."
+
+- term: "Grounding"
+  definition: "The practice of augmenting an LLM's prompt with retrieved factual content so that its response is anchored to specific, verifiable sources rather than relying solely on pre-trained knowledge."
+
+- term: "Human-in-the-Loop (HITL)"
+  definition: "A design pattern where a human expert is brought into the conversation when the automated system cannot answer with sufficient confidence or when the complexity of a query exceeds defined thresholds."
+
+- term: "Hybrid Search"
+  definition: "A retrieval strategy that combines traditional keyword-based (BM25) search with semantic (vector) search to improve recall and precision. Supported natively by Azure AI Search."
+
+- term: "Knowledge Index"
+  definition: "A structured, searchable repository of policy documents maintained by Foundry IQ. It contains chunked text, embeddings, and metadata for each ingested document."
+
+- term: "LLM"
+  definition: "Large Language Model. A deep learning model trained on massive corpora that can generate, understand, and reason about natural language. GPT-4o is the LLM used in Policy Bot."
+
+- term: "Orchestrator Agent"
+  definition: "The top-level agent that receives the user's question, decomposes it, routes subtasks to specialist agents, and assembles the final response."
+
+- term: "RAG (Retrieval-Augmented Generation)"
+  definition: "A pattern that retrieves relevant documents from a knowledge index and injects them into the LLM's prompt context, enabling grounded, accurate responses."
+
+- term: "Semantic Kernel"
+  definition: "Microsoft's open-source SDK for orchestrating AI workflows in .NET, Python, and Java. Used internally by the Agent Framework for tool registration and memory management."
+
+- term: "System Prompt"
+  definition: "A developer-controlled natural language instruction that sets the behaviour, persona, and constraints of an LLM chat session. Policy Bot uses per-agent system prompts to specialise each agent's role."
+
+- term: "Temperature"
+  definition: "An LLM sampling parameter (0–2) that controls output randomness. Lower values (e.g., 0.1) make responses more deterministic and factual; higher values increase creativity."
+
+- term: "Tool Calling"
+  definition: "The LLM capability to emit structured JSON describing a function it wants to invoke. The Agent Framework intercepts these calls, executes the appropriate tool, and returns results to the model."
+
+- term: "Vector Search"
+  definition: "A retrieval method that compares the embedding of a query to the embeddings of indexed documents using cosine similarity or dot-product. Enables semantic (meaning-based) rather than keyword-based matching."
+
+- term: "Workflow"
+  definition: "In Policy Bot, a structured sequence of agent steps and conditional branches that governs how a query is processed, escalated, and resolved. Implemented using the Agent Framework's workflow primitives."
